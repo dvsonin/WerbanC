@@ -1,0 +1,69 @@
+start: task+
+
+task: "#task" "{" task_block "}"
+
+?task_block: global_block instructions_block
+
+global_block: "#global" "{" global_entry* "}"
+
+?global_entry: lang_definition
+             | permissions
+             | iterate_block
+             | context_block
+
+lang_definition: "lang" "=" LANGUAGE
+
+LANGUAGE: "python" | "c" | "go"
+
+permissions: "allow_write"
+           | "allow_mcp"
+
+iterate_block: "batch_iterate" "[" item_attr_names "]" "=" "(" item_source_tuples ")"
+
+item_attr_names: item_attr_name ("," item_attr_name)* ","?
+item_attr_name: NAME
+
+item_source_tuples: item_source_tuple ("," item_source_tuple)* ","?
+?item_source_tuple: "(" source_lines ")"
+
+context_block: "context" "=" "[" source_lines? "]"
+source_lines: source_line ("," source_line)* ","?
+
+source_line: "src://" source_path src_symbol
+
+source_path: PATH
+           | STRING
+
+src_symbol: "@" symbol_name "[" symbol_item "]" symbol_access?
+
+symbol_name: NAME ("." NAME)*
+
+symbol_item: SYMBOL_MODE
+SYMBOL_MODE: "signature" | "body"
+
+symbol_access: "->" symbol_attr
+
+symbol_attr: SYMBOL_ATTRS
+SYMBOL_ATTRS: "name" | "input"
+
+instructions_block: "#instructions" "{" instruction_entry "}"
+instruction_entry: var_definition* text_block template_block write_destination?
+                 | part_block+
+
+part_block: "#part" NAME "{" var_definition* text_block template_block write_destination? "}"
+write_destination: PATH
+                 | STRING
+var_definition: "#var" NAME "=" source_line  -> assign_var
+text_block: "#text" start_flag mark_name RAW_BLOCK
+template_block: "#template" start_flag mark_name RAW_BLOCK
+start_flag: "start-->"
+mark_name: NAME
+
+RAW_BLOCK.10: /\r?\n(?s:.*?)^-->end[ \t]*(?=\r?$)/m
+PATH: /\/[^\s@\[\]{}(),"]+/
+
+%import common.CNAME -> NAME
+%import common.ESCAPED_STRING -> STRING
+%import common.WS
+
+%ignore WS
