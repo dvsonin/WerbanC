@@ -1,6 +1,7 @@
-start: task+
+start: task | named_task+
 
 task: "#task" "{" task_block "}"
+named_task: "#task" NAME "{" task_block "}" -> task
 
 ?task_block: global_block instructions_block
 
@@ -49,6 +50,7 @@ SYMBOL_ATTRS: "name" | "input"
 instructions_block: "#instructions" "{" instruction_entry "}"
 instruction_entry: var_definition* text_block template_block write_destination?
                  | part_block+
+                 | var_definition* part_block+
 
 part_block: "#part" NAME "{" var_definition* text_block template_block write_destination? "}"
 write_destination: PATH

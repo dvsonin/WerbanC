@@ -1,8 +1,18 @@
 """
     Python AST parser
 """
+import ast
+from werbanc.core.dsl.langs import (
+    BaseAst,
+    AstData
+)
 
-from werbanc.core.dsl.langs import BaseAstMixin
+class ASTPython(BaseAst):
 
-class ASTPython(BaseAstMixin):
-    pass
+    def parse(self, text: str) -> AstData:
+        """
+            Parse python sources
+        """
+        return AstData(
+            text=ast.parse(text, mode="exec")
+        )

@@ -1,0 +1,97 @@
+#task test_first {
+    #global {
+        lang = python
+
+        batch_iterate[crud, validator] = (
+            (
+                src:///project/crud.py@Cursor.update[signature]->name,
+                src:///project/validator.py@UpdateRequest[signature]
+            ),
+            (
+                src:///project/crud.py@Cursor.delete[signature],
+                src:///project/validator.py@DeleteRequest[signature]
+            ),
+            (
+                src:///project/crud.py@Cursor.create[signature],
+                src:///project/validator.py@CreateRequest[signature]
+            ),
+        )
+
+        context = [
+            src:///project/repo.py@Repo.find[signature],
+            src:///project/mirror.py@Mirror.update[signature],
+            src:///project/client.py@Client.connect[body],
+        ]
+    }
+    
+    #instructions {
+        #var upload_tmp = src:///project/repo.py@Repo.upload[signature]
+        #part handler {
+            #var upload = src:///project/repo.py@Repo.upload[signature]
+            #text start-->description
+Написать FastAPI-обработчик для метода ${item.crud},
+строго заполнив шаблон. Для вызова CRUD-метода используй переданный
+экземпляр cursor. Учти сигнатуру метода и модель запроса.
+-->end
+
+            #template start-->python
+def ${item.crud->name}(request: ${item.validator->name}, cursor: Cursor) -> None:
+    # Реализовать вызов метода cursor с данными request.
+    pass
+-->end
+        }
+
+        #part test {
+            #text start-->description
+Написать pytest-тест для обработчика из части handler.
+Подготовить валидный экземпляр ${item.validator->name}, подменить cursor
+и проверить вызов CRUD-метода с ожидаемыми аргументами.
+Строго заполни шаблон и согласуй тест с реализацией обработчика.
+-->end
+
+            #template start-->python
+def test_${item.crud->name}():
+    # Подготовить входные данные, вызвать обработчик и проверить результат.
+    pass
+-->end
+        }
+    }
+}
+#task test_second {
+    #global {
+        lang = python
+
+        batch_iterate[crud, validator] = (
+            (
+                src:///project/crud.py@Cursor.update[signature]->name,
+                src:///project/validator.py@UpdateRequest[signature]
+            ),
+            (
+                src:///project/crud.py@Cursor.delete[signature],
+                src:///project/validator.py@DeleteRequest[signature]
+            ),
+            (
+                src:///project/crud.py@Cursor.create[signature],
+                src:///project/validator.py@CreateRequest[signature]
+            ),
+        )
+
+        context = [
+            src:///project/repo.py@Repo.find[signature],
+            src:///project/mirror.py@Mirror.update[signature],
+            src:///project/client.py@Client.connect[body],
+        ]
+    }
+
+    #instructions {
+        #text start-->description
+Написать FastAPI-обработчик для метода ${item.crud},
+строго заполнив шаблон.
+-->end
+
+        #template start-->python
+def ${item.crud->name}(request: ${item.validator->name}) -> None:
+    ${item.crud->name}(**request.model_dump())
+-->end
+    }
+}
