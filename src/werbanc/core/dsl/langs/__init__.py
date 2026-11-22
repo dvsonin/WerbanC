@@ -3,15 +3,25 @@
 """
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from typing import (
+    Any,
+    Tuple
+)
 
 @dataclass
 class AstData:
     text: str
-    encode: bytes | None = None
+    tree: Any
+    encoded: bytes | None = None
 
-class BaseAst:
 
-     @abstractmethod
-     def parse(self, text: str) -> AstData:
-        raise NotImplemented
+class BaseAst(ABC):
 
+    @abstractmethod
+    def parse(self, text: str) -> AstData:
+        raise NotImplementedError
+
+
+    @abstractmethod
+    def extract(self, data: AstData, names_chain: tuple[str, ...]) -> Tuple[str, Tuple[str]]:
+        raise NotImplementedError

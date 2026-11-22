@@ -3,6 +3,7 @@
 """
 from functools import wraps
 from dataclasses import dataclass
+from logging import setLoggerClass
 from pathlib import Path
 from inspect import signature
 from typing import (
@@ -19,7 +20,7 @@ from werbanc.core.dsl.langs import (
 
 @dataclass
 class Symbol:
-    names_chain: str
+    names_chain: Tuple[str, ...]
     item: str
     access: str | None = None
 
@@ -31,7 +32,8 @@ class SourceLineRef:
 @dataclass
 class Source:
     ref: SourceLineRef
-    resolved: str
+    code: str
+    names: Tuple[str, ...]
 
 class SourceResolverCache:
     def __init__(self):
@@ -126,11 +128,36 @@ class SourceResolver:
             raise OSError(f"File {path} not a regular file")
         return path.read_text(encoding="utf-8")
 
-    @staticmethod
-    def _ast_parse(source: str):
+    @cached
+    def _ast_parse(self, path: Path) -> AstData:
+        """
+            Parse source
+        """
+        _text = self._read_source_path(
+            path,
+            cache_method=SourceResolverCache.get_data,
+        )
+        return self._ast.parse(_text)
 
+    @cached
+    def _resolve_symbol(self, path: Path, symbol_key: Tuple[str, ...]) -> Tuple[str, Tuple[str, ...]]:
+        """
+            Resolve source symbol
+        """
+        data = self._ast_parse(path=path, cache_method=SourceResolverCache.get_ast)
+        return self._ast.extract(data=data, names_chain=symbol_key)
 
-    def resolve(self,):
+    def resolve(self, ref: SourceLineRef) -> Source:
+        code, names_chain = self._resolve_symbol(
+            path=ref.path,
+            symbol_key=ref.symbol.names_chain,
+            cache_method=SourceResolverCache.get_symbol,
+        )
+        return Source(
+            ref=ref,
+            code=code,
+            names=names_chain
+        )
 
 class SourceLineTransformerMixin:
     """

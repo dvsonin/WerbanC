@@ -19,7 +19,7 @@ from werbanc.core.dsl.transformers.base import source_line as src_line
 from werbanc.core.dsl.transformers.base import batch_iterate
 from werbanc.core.dsl.transformers.base import instructions
 from werbanc.core.dsl.transformers.base.dataclass_separate_collection import Variable
-from werbanc.core.dsl.langs import BaseAstMixin
+from werbanc.core.dsl.langs import BaseAst
 from werbanc.core.dsl.langs.python import ASTPython
 
 class AstNotImplemented(Exception):
@@ -34,7 +34,7 @@ class AstSelector(Enum):
 
 @dataclass
 class GlobalSettings:
-    lang_ast: type[BaseAstMixin]
+    lang_ast: type[BaseAst]
     batch_iterate: List[dict[str, tuple]] | None = None
     context: Tuple[src_line.SourceLineRef] | None = None
 
@@ -63,7 +63,7 @@ class BaseTransformer(
 
     @v_args(inline=True)
     @staticmethod
-    def lang_definition(lang: str) -> type[BaseAstMixin]:
+    def lang_definition(lang: str) -> type[BaseAst]:
         return AstSelector[lang.upper()].value
 
     @staticmethod
@@ -73,7 +73,7 @@ class BaseTransformer(
     @v_args(inline=True)
     @staticmethod
     def global_block(
-            lang: type[BaseAstMixin],
+            lang: type[BaseAst],
             iterate_over: List[dict[str, tuple]] | None = None,
             context: Tuple[src_line.SourceLineRef] | None =  None
     ) -> GlobalSettings:
